@@ -6,6 +6,8 @@ from pyspark.sql import SparkSession
 os.environ['PYSPARK_PYTHON'] = r'C:\Users\sheeb\AppData\Local\Programs\Python\Python311\python.exe'
 os.environ['PYSPARK_DRIVER_PYTHON'] = r'C:\Users\sheeb\AppData\Local\Programs\Python\Python311\python.exe'
 
+from pyspark.sql import SparkSession
+
 spark = SparkSession.builder \
     .appName("Spark Intro") \
     .master("local[*]") \
@@ -35,16 +37,15 @@ empSchema = StructType([StructField(name="empid", dataType=IntegerType()),
                         ])
 
 df = spark.createDataFrame(data=empData, schema=empSchema)
+#df.show()
 
 df.rdd.getNumPartitions()
 
-#df.show()
+df2 = df.select("firstName", "department")
+#df2.show()
 
 df1 = df.where("salary > 70000")
 #df1.show()
-
-df2 = df.select("firstName", "department")
-#df2.show()
 
 df3 = df.filter(df.department == "IT")
 #df3.show()
@@ -57,17 +58,13 @@ from pyspark.sql.functions import round
 df5 = df4.withColumn("avg(salary)", round("avg(salary)", 2))
 #df5.show()
 
-from pyspark.sql.functions import col
+from pyspark.sql.functions import col, lit
 
 df6 = df.withColumn("bonus", col("salary") * 0.1)
 #df6.show()
 
-from pyspark.sql.functions import lit
-
 df7 = df.withColumn("company", lit("ABC Corporation Ltd"))
 #df7.show()
-
-from pyspark.sql.functions import lit
 
 df8 = df.withColumn("Code", lit(123456))
 #df8.show()
@@ -76,7 +73,25 @@ df9 = df8.drop("Code")
 #df9.show()
 
 df7.createOrReplaceTempView("Employees")
-spark.sql("select department, avg(salary) as Average from Employees group by department, managerID").show()
+#spark.sql("select department, avg(salary) as Average from Employees group by department, managerID").show()
 
 df10 = spark.read.csv(r"C:\Users\sheeb\Downloads\archive\Sales.csv", header=True, inferSchema=True)
-df10.show()
+#df10.show()
+
+df11 = df.select(col("empid").alias("EmployeeID"), "firstName", "lastName")
+#df11.show()
+
+df12 = df.withColumn("Status", when(col("salary")<70000, "Normal").otherwise("High Paying"))
+#df12.show()
+
+dfA = df.filter(col("salary").between(65000, 75000))
+#dfA.show()
+
+dfB = df.filter(col("managerID").isin(201, 203))
+#dfB.show()
+dfC = df.filter(col("department").isin("IT", "Sales"))
+#dfC.show()
+
+dfD = df.filter(col("firstName").like("J%"))
+dfD.show()
+
